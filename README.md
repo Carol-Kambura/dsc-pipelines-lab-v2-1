@@ -33,10 +33,10 @@ Import the `'winequality-red.csv'` dataset and print the first five rows of the 
 
 ```python
 # Import the data
-df = None
-
+df = pd.read_csv('winequality-red.csv')
 
 # Print the first five rows
+df.head()
 
 ```
 
@@ -45,6 +45,7 @@ Use the `.describe()` method to print the summary stats of all columns in `df`. 
 
 ```python
 # Print the summary stats of all columns
+df.describe()
 
 ```
 
@@ -65,11 +66,11 @@ However, before standardizing the data, let's split it into training and test se
 
 ```python
 # Split the predictor and target variables
-y = None
-X = None
+y = df['quality']
+X = df.drop('quality', axis=1)
 
 # Split into training and test sets
-X_train, X_test, y_train, y_test = None
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 ```
 
 ## Standardize your data 
@@ -81,11 +82,11 @@ X_train, X_test, y_train, y_test = None
 
 ```python
 # Instantiate StandardScaler
-scaler = None
+scaler = StandardScaler()
 
 # Transform the training and test sets
-scaled_data_train = None
-scaled_data_test = None
+scaled_data_train = scaler.fit_transform(X_train)
+scaled_data_test = scaler.transform(X_test)
 
 # Convert into a DataFrame
 scaled_df_train = pd.DataFrame(scaled_data_train, columns=X_train.columns)
@@ -100,9 +101,10 @@ scaled_df_train.head()
 
 ```python
 # Instantiate KNeighborsClassifier
-clf = None
+clf = KNeighborsClassifier()
 
 # Fit the classifier
+clf.fit(scaled_data_train, y_train)
 
 ```
 
@@ -111,6 +113,7 @@ Use the classifier's `.score()` method to calculate the accuracy on the test set
 
 ```python
 # Print the accuracy on test set
+clf.score(scaled_data_test, y_test)
 
 ```
 
@@ -129,7 +132,8 @@ Build a pipeline with two steps:
 
 ```python
 # Build a pipeline with StandardScaler and KNeighborsClassifier
-scaled_pipeline_1 = None
+scaled_pipeline_1 = Pipeline([('ss', StandardScaler()), 
+                              ('knn', KNeighborsClassifier())])
 ```
 
 - Transform and fit the model using this pipeline to the training data (you should use `X_train` here) 
@@ -138,9 +142,10 @@ scaled_pipeline_1 = None
 
 ```python
 # Fit the training data to pipeline
-
+scaled_pipeline_1.fit(X_train, y_train)
 
 # Print the accuracy on test set
+scaled_pipeline_1.score(X_test, y_test)
 
 ```
 
@@ -158,7 +163,8 @@ Again, build a pipeline with two steps:
 
 ```python
 # Build a pipeline with StandardScaler and RandomForestClassifier
-scaled_pipeline_2 = None
+scaled_pipeline_2 = Pipeline([('ss', StandardScaler()), 
+                              ('RF', RandomForestClassifier(random_state=123))])
 ```
 
 Use the defined `grid` to perform a grid search. We limited the hyperparameters and possible values to only a few values in order to limit the runtime. 
@@ -180,7 +186,10 @@ Define a grid search now. Use:
 
 ```python
 # Define a grid search
-gridsearch = None
+gridsearch = GridSearchCV(estimator=scaled_pipeline_2, 
+                          param_grid=grid, 
+                          scoring='accuracy', 
+                          cv=5)
 ```
 
 After defining the grid values and the grid search criteria, all that is left to do is fit the model to training data and then score the test set. Do this below: 
@@ -188,9 +197,10 @@ After defining the grid values and the grid search criteria, all that is left to
 
 ```python
 # Fit the training data
-
+gridsearch.fit(X_train, y_train)
 
 # Print the accuracy on test set
+gridsearch.score(X_test, y_test)
 
 ```
 
